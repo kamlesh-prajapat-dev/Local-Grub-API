@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: Localgrub
+
+msg91:
+  auth-key: ${MSG91_AUTH_KEY}
+  sender-id: ${MSG91_SENDER_ID}
+  template-id: ${MSG91_TEMPLATE_ID}
+  widget-id: ${MSG91_WIDGET_ID}
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+server:
+  port: ${PORT:8080}
