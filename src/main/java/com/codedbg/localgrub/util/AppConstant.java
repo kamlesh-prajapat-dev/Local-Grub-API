@@ -1,7 +1,7 @@
 package com.codedbg.localgrub.util;
 
 public class AppConstant {
-    public final static String INDIA_COUNTRY_CODE = "+91";
+    public final static String INDIA_COUNTRY_CODE = "91";
 
     public final static String AUTH_KEY = "authkey";
     public final static String WIDGET_ID = "widgetId";
