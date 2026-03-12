@@ -151,6 +151,7 @@ public class OtpService {
     private VerifyOtpResponse performPostRequest(String url, Map<String, Object> body, String actionDescription) {
         try {
             HttpEntity<?> entity = new HttpEntity<>(body, createHeaders());
+            logger.info("Entity is: {}", entity);
             return restTemplate.postForObject(url, entity, VerifyOtpResponse.class);
         } catch (Exception e) {
             logger.error("Error {}: {}", actionDescription, e.getMessage());
