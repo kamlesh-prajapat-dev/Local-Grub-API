@@ -1,16 +1,16 @@
 package com.codedbg.localgrub.service;
 
 import com.codedbg.localgrub.dto.TokenData;
+import com.codedbg.localgrub.dto.TokenRequest;
 import com.codedbg.localgrub.exception.DatabaseOperationException;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.xml.transform.Result;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -23,57 +23,179 @@ public class TokenService {
     private static final Logger log = LoggerFactory.getLogger(TokenService.class);
 
 
-    public String getToken(String id) {
-        try {
-            DocumentSnapshot document = firestore.collection(COLLECTION_NAME).document(id).get().get();
-            if (document.exists()) {
-                return document.getString("token");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Thread interrupted while fetching FCM token by ID: {}", id, e);
-            throw new DatabaseOperationException("Interrupted while fetching token", e);
-        } catch (ExecutionException e) {
-            log.error("Execution exception occurred while fetching FCM token by ID: {}", id, e);
-            throw new DatabaseOperationException("Failed to retrieve token from Firestore", e);
+    public String getToken(String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("UserId must not be null or empty");
         }
-        return null;
+
+        try {
+
+            DocumentReference documentRef =
+                    firestore.collection(COLLECTION_NAME).document(userId);
+
+            DocumentSnapshot document = documentRef.get().get();
+
+            if (!document.exists()) {
+                log.warn("No token found for userId: {}", userId);
+                return null;
+            }
+
+            String token = document.getString("token");
+
+            log.debug("Token fetched successfully for userId: {}", userId);
+
+            return token;
+
+        } catch (InterruptedException ex) {
+
+            Thread.currentThread().interrupt();
+            log.error("Thread interrupted while fetching token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Thread interrupted while fetching token", ex
+            );
+
+        } catch (ExecutionException ex) {
+
+            log.error("Firestore execution error while fetching token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Failed to retrieve token from Firestore", ex
+            );
+        }
     }
 
-    public void saveToken(String userId, TokenData data) {
+    public void saveToken(String userId, TokenRequest data) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("UserId must not be null or empty");
+        }
+
+        if (data == null || data.getToken() == null || data.getToken().isBlank()) {
+            throw new IllegalArgumentException("Token request must contain a valid token");
+        }
+
         try {
-            firestore.collection(COLLECTION_NAME).document(userId).set(data).get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            log.error("Failed to save token for user ID: {}", userId, e);
-            throw new DatabaseOperationException("Failed to save token", e);
+
+            TokenData tokenData = new TokenData(
+                    data.getToken(),
+                    data.getPlatform(),
+                    null,
+                    null
+            );
+
+            DocumentReference documentRef =
+                    firestore.collection(COLLECTION_NAME).document(userId);
+
+            WriteResult result = documentRef.set(tokenData).get();
+
+            log.info(
+                    "Token saved successfully for userId: {} at {}",
+                    userId,
+                    result.getUpdateTime()
+            );
+
+        } catch (InterruptedException ex) {
+
+            Thread.currentThread().interrupt();
+            log.error("Thread interrupted while saving token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Thread interrupted while saving token", ex
+            );
+
+        } catch (ExecutionException ex) {
+
+            log.error("Firestore execution error while saving token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Failed to save token in Firestore", ex
+            );
         }
     }
 
     public void updateToken(String userId, String token) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("UserId must not be null or empty");
+        }
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Token must not be null or empty");
+        }
+
         try {
-            firestore.collection(COLLECTION_NAME).document(userId).update("token", token).get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            log.error("Failed to update token for user ID: {}", userId, e);
-            throw new DatabaseOperationException("Failed to update token", e);
+
+            DocumentReference documentRef =
+                    firestore.collection(COLLECTION_NAME).document(userId);
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("token", token);
+            updates.put("updatedAt", FieldValue.serverTimestamp());
+
+            WriteResult result = documentRef.update(updates).get();
+
+            log.info(
+                    "Token updated successfully for userId: {} at {}",
+                    userId,
+                    result.getUpdateTime()
+            );
+
+        } catch (InterruptedException ex) {
+
+            Thread.currentThread().interrupt();
+            log.error("Thread interrupted while updating token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Thread interrupted while updating token", ex
+            );
+
+        } catch (ExecutionException ex) {
+
+            log.error("Firestore execution error while updating token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Failed to update token in Firestore", ex
+            );
         }
     }
 
     public void deleteToken(String userId) {
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("UserId must not be null or empty");
+        }
+
         try {
-            WriteResult result = firestore.collection(COLLECTION_NAME).document(userId).delete().get();
-            log.error("Deleted token for user ID: {}{}", userId, result);
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            log.error("Failed to delete token for user ID: {}", userId, e);
-            throw new DatabaseOperationException("Failed to delete token", e);
+
+            DocumentReference documentRef =
+                    firestore.collection(COLLECTION_NAME).document(userId);
+
+            WriteResult result = documentRef.delete().get();
+
+            log.info(
+                    "Token deleted successfully for userId: {} at {}",
+                    userId,
+                    result.getUpdateTime()
+            );
+
+        } catch (InterruptedException ex) {
+
+            Thread.currentThread().interrupt();
+            log.error("Thread interrupted while deleting token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Thread interrupted while deleting token", ex
+            );
+
+        } catch (ExecutionException ex) {
+
+            log.error("Firestore execution error while deleting token for userId: {}", userId, ex);
+
+            throw new DatabaseOperationException(
+                    "Failed to delete token from Firestore", ex
+            );
         }
     }
 }

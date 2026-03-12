@@ -33,7 +33,7 @@ public class AuthenticationController {
 
     @PostMapping({"/send-otp"})
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest otpRequest) {
-        VerifyOtpResponse response = this.otpService.sendOtpByWidget(otpRequest.getPhoneNumber());
+        VerifyOtpResponse response = this.otpService.sendOtp(otpRequest.getPhoneNumber());
         Map<String, String> responseData = new HashMap<>();
         responseData.put("message", response.getMessage());
         responseData.put("type", response.getType());

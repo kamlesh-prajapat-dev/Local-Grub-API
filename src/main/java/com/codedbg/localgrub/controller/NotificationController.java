@@ -1,9 +1,6 @@
 package com.codedbg.localgrub.controller;
 
-import com.codedbg.localgrub.dto.ApiResponse;
-import com.codedbg.localgrub.dto.NotificationContent;
-import com.codedbg.localgrub.dto.NotificationRequest;
-import com.codedbg.localgrub.dto.TokenData;
+import com.codedbg.localgrub.dto.*;
 import com.codedbg.localgrub.service.FCMService;
 import com.codedbg.localgrub.service.OwnerService;
 import com.codedbg.localgrub.service.TokenService;
@@ -32,7 +29,7 @@ public class NotificationController {
     private final static String COLLECTION_NAME = "tokens";
 
     @PostMapping("id/{id}")
-    public ResponseEntity<?> saveToken(@PathVariable String id, @RequestBody TokenData data) {
+    public ResponseEntity<?> saveToken(@PathVariable String id, @RequestBody TokenRequest data) {
         tokenService.saveToken(id, data);
         return ResponseEntity.ok(new ApiResponse<>(true, "Token saved successfully", null));
     }
@@ -55,7 +52,7 @@ public class NotificationController {
         if (token != null && !token.isBlank()) {
             NotificationContent notificationContent = getNotificationContent(request.getStatus(), request.getOrderId(), request.getUserName());
             try {
-                fcmService.sendNotification(notificationContent.getTitle(), notificationContent.getBody(), token);
+                fcmService.sendNotification(notificationContent.getTitle(), notificationContent.getBody(), token, request.getOrderId());
                 return ResponseEntity.ok(new ApiResponse<>(true, "Notification sent successfully", null));
             } catch (Exception e) {
                 logger.error("Failed to send notification: {}", e.getMessage(), e);
@@ -75,7 +72,7 @@ public class NotificationController {
             if (token != null && !token.isBlank()) {
                 NotificationContent notificationContent = getNotificationContent(request.getStatus(), request.getOrderId(), request.getUserName());
                 try {
-                    fcmService.sendNotification(notificationContent.getTitle(), notificationContent.getBody(), token);
+                    fcmService.sendNotification(notificationContent.getTitle(), notificationContent.getBody(), token, request.getOrderId());
                     return ResponseEntity.ok(new ApiResponse<>(true, "Notification sent successfully", null));
                 } catch (Exception e) {
                     logger.error("Failed to send notification: {}", e.getMessage(), e);

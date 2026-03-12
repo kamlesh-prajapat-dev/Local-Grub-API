@@ -53,14 +53,14 @@ public class OtpService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public OtpService(Msg91Config msg91Config, RestTemplate restTemplate) {
+    public OtpService() {
         otpRequestCountCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.DAYS).build();
         failedAttemptsCache = CacheBuilder.newBuilder().expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES).build();
         blockedNumbersCache = CacheBuilder.newBuilder().expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES).build();
         otpCooldownCache = CacheBuilder.newBuilder().expireAfterWrite(OTP_COOLDOWN_SECONDS, TimeUnit.SECONDS).build();
     }
 
-    public VerifyOtpResponse sendOtpByWidget(String phoneNumber) {
+    public VerifyOtpResponse sendOtp(String phoneNumber) {
         validateAndCheckBlock(phoneNumber);
         checkRateLimiting(phoneNumber);
 

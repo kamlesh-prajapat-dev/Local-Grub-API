@@ -13,7 +13,7 @@ public class FCMService {
     @Autowired
     private FirebaseMessaging firebaseMessaging;
 
-    public void sendNotification(String title, String body, String token) throws FirebaseMessagingException {
+    public void sendNotification(String title, String body, String token, String data) throws FirebaseMessagingException {
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
@@ -22,6 +22,7 @@ public class FCMService {
         Message message = Message.builder()
                 .setToken(token)
                 .setNotification(notification)
+                .putData("ORDER_ID", data)
                 .build();
 
         firebaseMessaging.send(message);
