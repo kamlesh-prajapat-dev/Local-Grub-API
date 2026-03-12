@@ -69,6 +69,8 @@ public class OtpService {
         body.put(AppConstant.WIDGET_ID, msg91Config.getWidgetId());
         body.put(AppConstant.IDENTIFIER, mobileNumber);
 
+        logger.info("Body is {}", body);
+
         VerifyOtpResponse response = performPostRequest(MSG91_WIDGET_SEND_OTP_URL, body, "sending OTP to " + mobileNumber);
 
         if (response != null && AppConstant.SUCCESS_RESULT.equals(response.getType())) {
