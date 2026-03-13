@@ -1,5 +1,6 @@
 package com.codedbg.localgrub.controller;
 
+import com.codedbg.localgrub.dto.LoginRequest;
 import com.codedbg.localgrub.dto.LoginResponse;
 import com.codedbg.localgrub.dto.ApiResponse;
 import com.codedbg.localgrub.service.AdminService;
@@ -20,7 +21,10 @@ public class PublicController {
     }
 
     @PostMapping("/admin/login")
-    public ResponseEntity<?> login(@RequestBody String username, @RequestBody String password) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        String username = request.getUsername();
+        String password = request.getPassword();
+
         if (username.isBlank() || password.isBlank()) {
             throw new IllegalArgumentException("Invalid Credentials.");
         }
